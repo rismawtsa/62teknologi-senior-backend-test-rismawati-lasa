@@ -1,0 +1,31 @@
+GET http://localhost:3000
+
+###
+POST http://localhost:3000/business
+Authorization: Bearer 123456
+content-type: application/json
+
+{
+    "name": "Katz's Delicatessen",
+    "alias": "katzs-delicatessen-new-york",
+    "phone": "0987766"
+}
+
+###
+PUT http://localhost:3000/business/0758f772-c5cd-4c23-88d8-3499400aafa7
+Authorization: Bearer 123456
+content-type: application/json
+
+{
+    "name": "Katz's Delicatessen update",
+    "alias": "katzs-delicatessen-new-york update",
+    "phone": "09877667"
+}
+
+###
+DELETE http://localhost:3000/business/f482fd2f-9e18-4519-a749-e1fb65593891
+Authorization: Bearer 123456
+
+###
+GET http://localhost:3000/business/search
+Authorization: Bearer 123456
