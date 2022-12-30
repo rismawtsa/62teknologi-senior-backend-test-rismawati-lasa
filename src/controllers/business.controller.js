@@ -1,18 +1,48 @@
-const { Business } = require("../models");
+const { Business, BusinessCategory, Category } = require("../models");
 const logger = require("../utils/logger.util");
+const errorResponse = require("../utils/errorResponse.util");
+const { ValidationError } = require("../utils/extendingError.util");
 
-// TODO save categories, location
+// TODO save location
 const createBusiness = async (req, res) => {
   try {
-    logger.info("business.controller-create", { data: req.body });
-    const { name, alias, phone } = req.body;
+    logger.info("business.controller-createBusiness", { data: req.body });
+    const { name, alias, phone, categories } = req.body;
 
     const business = await Business.create({ name, alias, phone });
 
-    res.status(200).json({ message: "success create business", business });
+    let categoryData = categories.map((item) => ({
+      category_id: item,
+      business_id: business.id,
+    }));
+    await BusinessCategory.bulkCreate(categoryData);
+
+    res.status(200).json({ data: { id: business.id } });
   } catch (error) {
-    logger.error("business.controller-create", { error });
-    res.status(500).json({ error: { code: "INTERNAL_SERVER_ERROR" } });
+    return errorResponse({
+      res,
+      error,
+      logName: "business.controller-createBusiness",
+    });
+  }
+};
+
+const getBusinessById = async (req, res) => {
+  try {
+    logger.info("business.controller-getBusinessById", { data: req.query });
+    const { id } = req.params;
+    const business = await Business.findOne(
+      { where: { id } },
+      { model: BusinessCategory, as: "categories" },
+    );
+
+    res.status(200).json({ business });
+  } catch (error) {
+    return errorResponse({
+      res,
+      error,
+      logName: "business.controller-getBusinessById",
+    });
   }
 };
 
@@ -25,7 +55,7 @@ const updateBusiness = async (req, res) => {
     });
 
     if (!business) {
-      return res.status(404).json({ error: { code: "DATA_NOT_FOUND" } });
+      throw new ValidationError("Data not found");
     }
 
     const { name, alias, phone } = req.body;
@@ -35,33 +65,37 @@ const updateBusiness = async (req, res) => {
     business.phone = phone;
     await business;
 
-    res.status(200).json({ message: "success update business", business });
+    res.status(200).json({ business });
   } catch (error) {
-    console.log({ error });
-    logger.error("business.controller-update", { error });
-    res.status(500).json({ error: { code: "INTERNAL_SERVER_ERROR" } });
+    return errorResponse({
+      res,
+      error,
+      logName: "business.controller-updateBusiness",
+    });
   }
 };
 
 const deleteBusiness = async (req, res) => {
   try {
-    logger.info("business.controller-delete", { data: req.body });
+    logger.info("business.controller-deleteBusiness", { data: req.body });
     const { id } = req.params;
     const business = await Business.findOne({
       where: { id },
     });
 
     if (!business) {
-      return res.status(404).json({ error: { code: "DATA_NOT_FOUND" } });
+      throw new ValidationError("Data not found");
     }
 
     await business.destroy();
 
-    res.status(200).json({ message: "success delete business", business });
+    res.status(200).json({ business });
   } catch (error) {
-    console.log({ error });
-    logger.error("business.controller-update", { error });
-    res.status(500).json({ error: { code: "INTERNAL_SERVER_ERROR" } });
+    return errorResponse({
+      res,
+      error,
+      logName: "business.controller-deleteBusiness",
+    });
   }
 };
 
@@ -69,19 +103,48 @@ const deleteBusiness = async (req, res) => {
 const searchBusiness = async (req, res) => {
   try {
     logger.info("searchBusiness");
-    const businesses = await Business.findAll();
+    const businesses = await Business.findAll({
+      include: {
+        model: BusinessCategory,
+        as: "categories",
+        include: { model: Category },
+      },
+    });
     const total = businesses.length;
 
-    res.status(200).json({ businesses, total });
+    // console.log(businesses.categories);
+    const data = businesses.map((item) => {
+      return {
+        id: item.id,
+        alias: item.alias,
+        name: item.name,
+        phone: item.phone,
+        image_url: item.image_url,
+        url: item.url,
+        is_closed: item.is_closed,
+        rating: item.rating,
+        prices: item.prices,
+        categories: item.categories.map((ctg) => {
+          return {
+            alias: ctg?.Category?.alias,
+            title: ctg?.Category?.title,
+          };
+        }),
+      };
+    });
+
+    res.status(200).json({ data, total });
   } catch (error) {
-    console.log({ error });
-    logger.error("business.controller-searchBusiness", { error });
-    res.status(500).json({ error: { code: "INTERNAL_SERVER_ERROR" } });
+    return errorResponse({
+      res,
+      error,
+      logName: "business.controller-searchBusiness",
+    });
   }
 };
-
 module.exports = {
   createBusiness,
+  getBusinessById,
   updateBusiness,
   deleteBusiness,
   searchBusiness,

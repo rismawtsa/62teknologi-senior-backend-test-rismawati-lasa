@@ -1,14 +1,30 @@
 GET http://localhost:3000
 
 ###
+GET http://localhost:3000/category
+Authorization: Bearer 123456
+
+###
+
+POST http://localhost:3000/category
+Authorization: Bearer 123456
+content-type: application/json
+
+{
+    "alias": "bakery-1",
+    "title": "Bakery 1"
+}
+
+###
 POST http://localhost:3000/business
 Authorization: Bearer 123456
 content-type: application/json
 
 {
-    "name": "Katz's Delicatessen",
-    "alias": "katzs-delicatessen-new-york",
-    "phone": "0987766"
+    "name": "test kitchen",
+    "alias": "test-4",
+    "phone": "0987766",
+    "categories": [1, 2, 3]
 }
 
 ###
@@ -23,9 +39,9 @@ content-type: application/json
 }
 
 ###
-DELETE http://localhost:3000/business/f482fd2f-9e18-4519-a749-e1fb65593891
+DELETE http://localhost:3000/business/236fe09f-4648-4f7c-8e4d-eb469c9cac3b
 Authorization: Bearer 123456
 
 ###
-GET http://localhost:3000/business/search
+GET http://localhost:3000/business/search?location='test'
 Authorization: Bearer 123456

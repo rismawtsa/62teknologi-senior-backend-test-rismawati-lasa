@@ -5,16 +5,13 @@
     "es6": true,
     "jest": true
   },
-  "extends": ["eslint:recommended", "plugin:prettier/recommended"],
+  "extends": ["eslint:recommended", "prettier"],
   "plugins": ["prettier"],
+  "ignorePatterns": ["**/seeders/*.js"],
   "rules": {
-    "prettier/prettier": [
-      "error",
-      {},
-      {
-        "usePrettierrc": false
-      }
-    ]
+    "prettier/prettier": "error",
+    "arrow-body-style": "off",
+    "prefer-arrow-callback": "off"
   },
 
   "parserOptions": {
